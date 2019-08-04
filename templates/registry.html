@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,
+maximum-scale=1, user-scalable=no">
+    <link href="https://cdn.bootcss.com/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/mystyle.css">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <form action="/registry" method="post" class="form-horizontal reg-form" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <div class="form-group ">
+                    <label for="{{ form_obj.username.id_for_label }}"
+                           class="col-sm-2 control-label">{{ form_obj.username.label }}</label>
+                    <div class="col-sm-6">
+                        {{ form_obj.username }}
+                        <span class="help-block">{{ form_obj.username.errors.0 }}</span>
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form_obj.password.id_for_label }}"
+                           class="col-sm-2 control-label">{{ form_obj.password.label }}</label>
+                    <div class="col-sm-6">
+                        {{ form_obj.password }}
+                           <span class="help-block">{{ form_obj.password.errors.0 }}</span>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label for="{{ form_obj.verify_password.id_for_label }}"
+                           class="col-sm-2 control-label">{{ form_obj.verify_password.label }}</label>
+                    <div class="col-sm-6">
+                        {{ form_obj.verify_password }}
+                                <span class="help-block">{{ form_obj.verify_password.errors.0 }}</span>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label for="{{ form_obj.email.id_for_label }}"
+                           class="col-sm-2 control-label">{{ form_obj.email.label }}</label>
+                    <div class="col-sm-6">
+                        {{ form_obj.email }}
+                    <span class="help-block">{{ form_obj.email.errors.0}}</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_avatar"
+                           class="col-sm-2 control-label">头像</label>
+                    <div class="col-sm-6">
+                        <label for="id_avatar"><img id="avatar_img" src="/static/img/default.png" alt="default pic"></label>
+                        <input type="file" id="id_avatar" name="avatar" class="hidden">
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-10 col-sm-offset-2">
+                        <button type="button" class="btn btn-success" id="reg-submit">注册</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/static/jquery-3.3.0.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/js/ajaxSetup.js"></script>
+<script>
+    $(document).ready( function() {
+        //找到头像的input标签
+        $('#id_avatar').on('change', function () {
+            // 1. 创建一个读取文件的对象
+            var fileReader = new FileReader();
+            // 读取你选中的那个文件,files为标签的FileList，是一个文件对象列表
+            fileReader.readAsDataURL(this.files[0]);
+            // 2.  等文件读取完毕后，改变文件加载到img标签中
+            fileReader.onload = function () {
+                {#console.log(fileReader.result);#}
+                $('#avatar_img').attr('src', fileReader.result);
+            }
+        });
+
+        // ajax 提交注册
+        $('#reg-submit').on('click',function(){
+            // 取道用户填写的注册数据，向后端发送ajax请求
+            var username = $('#id_username').val();
+            var password = $('#id_password').val();
+            var verify_password = $('#id_verify_password').val();
+            var email = $('#id_email').val();
+            var avatar = $('#id_avatar')[0].files[0];
+            console.log(avatar);
+            var formData = new FormData();
+            formData.append("username",username);
+            formData.append("password",password);
+            formData.append("verify_password",verify_password);
+            formData.append("email",email);
+            formData.append("avatar",avatar);
+           $.ajax({
+               url: "/registry",
+               type: "post",
+               processData: false,
+               contentType: false,
+               data: formData,
+               success: function (data){
+                   if (data.status) {
+                       // 有错误就展示错误
+                       console.log(data.msg);
+                       // 将报错信息在页面展示
+                       $.each(data.msg,function(k,v){
+                           $("#id_"+k).next("span").text(v[0])
+                           .parent().parent().addClass("has-error");
+                       });
+                   }else {
+                       // 没有错误就跳转到指定页面
+                    location.href = data.msg;
+                   }
+               }
+           });
+
+        });
+
+        // 将所有的input框绑定获取焦点的事件，将所有错误信息清空
+        $("form input").on("focus",function(){
+            $(this).next().text("").parent().parent().removeClass("has-error");
+        })
+    })
+</script>
+</body>
+</html>

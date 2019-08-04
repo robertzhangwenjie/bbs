@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,
+maximum-scale=1, user-scalable=no">
+    <link href="https://cdn.bootcss.com/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+</head>
+<body>
+<form action="/upload" method="post" enctype="multipart/form-data">
+{#    {% csrf_token %}#}
+    <input type="file" name="filename">
+    <button type="submit">上传</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,10 @@
+/*注册页面的自定义样式*/
+.reg-form {
+    margin-top: 70px;
+}
+
+
+#avatar_img {
+    width: 80px;
+    height: 80px;
+}
