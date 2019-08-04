@@ -10,7 +10,7 @@ from django import forms
 # 定义一个注册的form类
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-
+from blog import models
 
 class RegistryForm(forms.Form):
 
@@ -67,6 +67,11 @@ class RegistryForm(forms.Form):
         }
     )
 
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if models.UserInfo.objects.get(username=username):
+            self.add_error("username",ValidationError("用户名已存在"))
+        return self.cleaned_data
 
     def clean(self):
         password = self.cleaned_data.get('password'),

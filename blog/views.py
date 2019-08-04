@@ -1,10 +1,9 @@
-import json
 import os
 
-from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import render,HttpResponse,redirect
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.contrib import auth
 from bbs import settings
 from blog import models
 # Create your views here.
@@ -13,7 +12,7 @@ from blog import models
 def index(request):
     return render(request,'index.html')
 
-@csrf_exempt
+@login_required
 def upload(request):
     if request.method == "POST":
         upload_file = request.FILES.get('filename')
@@ -26,9 +25,33 @@ def upload(request):
 
 
 def login(request):
+    if request.method == "POST":
+        # 初始化返回对象
+        ret = {
+            "status": 0,
+            "msg": ""
+        }
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        validate_code = request.POST.get("validate_code")
+        if username and password:
+            # 判断用户名和密码是否正确
+            user = auth.authenticate(username=username, password=password)
+            if user is not None:
+                # 如果登录成功，将登录的用户信息封装到request中
+                auth.login(request, user)
+                return redirect(index)
+            return HttpResponse("用户名和密码不正确")
+        else:
+            return HttpResponse("用户名和密码不能为空")
+    return render(request, "login.html")
 
-    return render(request,'upload.html')
 
+def logout(request):
+    # 清空浏览器和数据库中的session
+    auth.logout(request)
+
+    return redirect(login)
 
 
 from blog import forms
@@ -45,16 +68,9 @@ def registry(request):
             # 校验通过，去数据库创建一个新用户
             form_obj.cleaned_data.pop("verify_password")
             print(request.POST)
-            try:
-                models.UserInfo.objects.create_user(avatar=avatar, **form_obj.cleaned_data)
-                ret['msg'] = "/index"
-                return JsonResponse(ret)
-            except IntegrityError as err:
-                ret['status'] = 1
-                ret['msg']= {}
-                ret['msg']['username'] = ["该账户已注册",]
-                print(ret)
-                return JsonResponse(ret)
+            models.UserInfo.objects.create_user(avatar=avatar, **form_obj.cleaned_data)
+            ret['msg'] = "/index"
+            return JsonResponse(ret)
         else:
             print(form_obj.errors)
             # return render(request,'registry.html',{'form_obj':form_obj})
