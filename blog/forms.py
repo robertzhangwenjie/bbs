@@ -17,7 +17,7 @@ class RegistryForm(forms.Form):
     username = forms.CharField(
         label="用户名",
         max_length=16,
-        min_length=6,
+        min_length=3,
         widget= forms.widgets.TextInput(
             attrs={
                 "class" : "form-control"
@@ -26,7 +26,7 @@ class RegistryForm(forms.Form):
         required=True,
         error_messages= {
             'max_length': "账号长度超过限制",
-            # 'm_length': "账号长度不能低于6位",
+            'min_length': "账号长度不能低于3位",
             'required': "账号不能位空"
         }
     )
@@ -42,7 +42,6 @@ class RegistryForm(forms.Form):
         required=True,
         # 定义密码必须要包含大小写，数字和字母组合
         validators= [
-            RegexValidator(r'[A-Z]+',"密码必须包含大小写字母，数字"),
             RegexValidator(r'[0-9]+',"密码必须包含大小写字母，数字"),
             RegexValidator(r'[a-z]+',"密码必须包含大小写字母，数字"),
         ],
@@ -69,9 +68,10 @@ class RegistryForm(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data.get("username")
-        if models.UserInfo.objects.get(username=username):
+        if models.UserInfo.objects.filter(username=username):
             self.add_error("username",ValidationError("用户名已存在"))
-        return self.cleaned_data
+        print(self.cleaned_data)
+        return username
 
     def clean(self):
         password = self.cleaned_data.get('password'),
